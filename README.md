@@ -7,7 +7,7 @@ Starter code for test-time augmentation related research.
 git clone https://github.com/divyashan/tta_research.git
 ```
 
-3. Create a conda environment with libraries in ``requirements.txt``
+2. Create a conda environment with libraries in ``requirements.txt``
 
 ```
 conda create --name my-amazing-tta-project python=3.6
