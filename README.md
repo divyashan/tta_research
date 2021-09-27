@@ -7,6 +7,8 @@ Starter code for test-time augmentation related research.
 git clone https://github.com/divyashan/tta_research.git
 ```
 
+You may need to set up an SSH key for the server you're using; you can generate an SSH key following the instructions [here](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent) and add it to your account by following the instructions [here](https://docs.github.com/en/enterprise-server@3.0/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account)
+
 2. Create a conda environment with libraries in ``requirements.txt``
 
 ```
