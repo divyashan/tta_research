@@ -4,7 +4,7 @@ Starter code for test-time augmentation related research.
 1. Clone this repo
 
 ```
-https://github.com/divyashan/tta_research.git
+git clone https://github.com/divyashan/tta_research.git
 ```
 
 3. Create a conda environment with libraries in ``requirements.txt``
