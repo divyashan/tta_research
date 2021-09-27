@@ -6,6 +6,7 @@ Starter code for test-time augmentation related research.
 ```
 conda create --name my-amazing-tta-project python=3.6
 source activate my-amazing-tta-project
+conda config --add channels pytorch
 conda install --file conda_requirements.txt
 ```
 
