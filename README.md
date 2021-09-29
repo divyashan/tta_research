@@ -18,4 +18,10 @@ conda config --add channels pytorch
 conda install --file conda_requirements.txt
 ```
 
+You'll have to install the utee package by running the following command in the pytorch-playground directory:
+
+```
+python3 setup.py develop --user
+```
+
 3. Run through the cells in Sandbox.ipynb! Let me know if you run into any issues.
