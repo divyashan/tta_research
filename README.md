@@ -24,4 +24,23 @@ You'll have to install the utee package by running the following command in the 
 python3 setup.py develop --user
 ```
 
-3. Run through the cells in Sandbox.ipynb! Let me know if you run into any issues.
+3. Start a jupyter notebook by running this command at the root directory of the project:
+
+```
+jupyter notebook --no-browser
+```
+
+4. Add the following shortcut for SSH tunnels your ~/.bashrc file. You only need to do this once.
+
+```
+tunnel() {
+    ssh -N -f -L localhost:9000:localhost:$2 <CSAIL-KERB>@$1.csail.mit.edu
+}
+```
+
+5. Run ```tunnel <oreo,mars,ahoy,twix> 8888``` in your local command line. 
+
+6. Open the notebook at localhost:8888, and run through the cells in Sandbox.ipynb!
+
+
+
