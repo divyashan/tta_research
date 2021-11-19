@@ -45,11 +45,184 @@ def initialize_nlpaug_transform(transform_name):
     elif transform_name == 'nlp_keyboard':
         aug = nac.KeyboardAug()
         
-    elif transform_name == 'nlp_random_insert':
+    elif transform_name == 'nlp_random_char_insert':
         aug = nac.RandomCharAug(action = 'insert')
     
-    elif transform_name == 'nlp_random_substitution':
+    elif transform_name == 'nlp_random_char_substitution':
         aug = nac.RandomCharAug(action = 'insert')
+        
+    elif transform_name == 'nlp_random_char_swap':
+        aug = nac.RandomCharAug(action = 'swap')
+        
+    elif transform_name == 'nlp_random_char_deletion':
+        aug = nac.RandomCharAug(action = 'delete')
+    
+    elif transform_name == 'nlp_spelling_substitution':
+        aug = naw.SpellingAug()
+        
+    elif transform_name == 'nlp_random_similar_word_insertion_word2vec_embedding':
+        aug = naw.WordEmbsAug(model_type='word2vec', 
+                              model_path=model_dir+'GoogleNews-vectors-negative300.bin',
+                              action="insert")
+        
+        
+    elif transform_name == 'nlp_random_similar_word_insertion_glove_embedding':
+        aug = naw.WordEmbsAug(model_type='glove', 
+                              model_path=model_dir+'GoogleNews-vectors-negative300.bin',
+                              action="insert")
+        
+    elif transform_name == 'nlp_random_similar_word_insertion_fasttext_embedding':
+        aug = naw.WordEmbsAug(model_type='fasttext', 
+                              model_path=model_dir+'GoogleNews-vectors-negative300.bin',
+                              action="insert")
+    
+    elif transform_name == 'nlp_random_similar_word_substitution_word2vec_embedding':
+        aug = naw.WordEmbsAug(model_type='word2vec', 
+                              model_path=model_dir+'GoogleNews-vectors-negative300.bin',
+                              action="substitute")
+        
+        
+    elif transform_name == 'nlp_random_similar_word_substitution_glove_embedding':
+        aug = naw.WordEmbsAug(model_type='glove', 
+                              model_path=model_dir+'GoogleNews-vectors-negative300.bin',
+                              action="substitute")
+        
+    elif transform_name == 'nlp_random_similar_word_substitution_fasttext_embedding':
+        aug = naw.WordEmbsAug(model_type='fasttext', 
+                              model_path=model_dir+'GoogleNews-vectors-negative300.bin',
+                              action="substitute")
+        
+        
+    elif transform_name == 'nlp_random_similar_word_substitution_tfidf_embedding':
+        aug = naw.TfIdfAug(model_path=os.environ.get("MODEL_DIR"),
+                           action="substitute")
+        
+        
+    elif transform_name == 'nlp_random_contextual_word_insertion_bert_uncased_embedding':
+        aug = naw.ContextualWordEmbsAug(model_path='bert-base-uncased', 
+                                        action="insert")
+        
+    elif transform_name == 'nlp_random_contextual_word_insertion_bert_cased_embedding':
+        aug = naw.ContextualWordEmbsAug(model_path='bert-base-uncased', 
+                                        action="insert")
+    
+    elif transform_name == 'nlp_random_contextual_word_insertion_distilbert_uncased_embedding':
+        aug = naw.ContextualWordEmbsAug(model_path='distilbert-base-uncased', 
+                                        action="insert")
+        
+    elif transform_name == 'nlp_random_contextual_word_insertion_distilbert_cased_embedding':
+        aug = naw.ContextualWordEmbsAug(model_path='distilbert-base-uncased', 
+                                        action="insert")
+        
+    elif transform_name == 'nlp_random_contextual_word_insertion_roberta_base_embedding':
+        aug = naw.ContextualWordEmbsAug(model_path='roberta-base', 
+                                        action="insert")
+        
+    elif transform_name == 'nlp_random_contextual_word_insertion_distilroberta_base_embedding':
+        aug = naw.ContextualWordEmbsAug(model_path='distilroberta-base', 
+                                        action="insert")
+    
+    elif transform_name == 'nlp_random_contextual_word_insertion_xlnet_embedding':
+        aug = naw.ContextualWordEmbsAug(model_path='xlnet', 
+                                        action="insert")
+    
+    elif transform_name == 'nlp_random_contextual_word_insertion_bart_base_embedding':
+        aug = naw.ContextualWordEmbsAug(model_path='facebook/bart-base', 
+                                        action="insert")
+        
+    elif transform_name == 'nlp_random_contextual_word_insertion_squeezebert_uncased_embedding':
+        aug = naw.ContextualWordEmbsAug(model_path='squeezebert/squeezebert-uncased', 
+                                        action="insert")
+    
+    
+    elif transform_name == 'nlp_random_contextual_word_substitution_bert_uncased_embedding':
+        aug = naw.ContextualWordEmbsAug(model_path='bert-base-uncased', 
+                                        action="substitute")
+   
+    elif transform_name == 'nlp_random_contextual_word_substitution_bert_cased_embedding':
+        aug = naw.ContextualWordEmbsAug(model_path='bert-base-cased', 
+                                        action="substitute")
+        
+    elif transform_name == 'nlp_random_contextual_word_substitution_distilbert_uncased_embedding':
+        aug = naw.ContextualWordEmbsAug(model_path='distilbert-base-uncased', 
+                                        action="substitute")
+   
+    elif transform_name == 'nlp_random_contextual_word_substitution_distilbert_cased_embedding':
+        aug = naw.ContextualWordEmbsAug(model_path='distilbert-base-cased', 
+                                        action="substitute")
+        
+    elif transform_name == 'nlp_random_contextual_word_substitution_roberta_embedding':
+        aug = naw.ContextualWordEmbsAug(model_path='roberta-base', 
+                                        action="substitute")
+  
+    elif transform_name == 'nlp_random_contextual_word_substitution_distilroberta_base_embedding':
+        aug = naw.ContextualWordEmbsAug(model_path='distilroberta-base', 
+                                        action="substitute")
+        
+    elif transform_name == 'nlp_random_contextual_word_substitution_xlnet_embedding':
+        aug = naw.ContextualWordEmbsAug(model_path='xlnet', 
+                                        action="substitute")
+
+    elif transform_name == 'nlp_random_contextual_word_substitution_bart_base_embedding':
+        aug = naw.ContextualWordEmbsAug(model_path='facebook/bart-base', 
+                                        action="substitute")
+        
+    elif transform_name == 'nlp_random_contextual_word_substitution_squeezebert_uncased_embedding':
+        aug = naw.ContextualWordEmbsAug(model_path='squeezebert/squeezebert-uncased', 
+                                        action="substitute")
+        
+        
+    elif transform_name == 'nlp_wordnet_synonym':
+        aug = naw.SynonymAug()
+    
+    elif transform_name == 'nlp_ppdb_synonym':
+        aug = naw.SynonymAug(aug_src='ppdb', 
+                             model_path=os.environ.get("MODEL_DIR") + 'ppdb-2.0-s-all')
+        
+    elif transform_name == 'nlp_antonym':
+        aug = naw.AntonymAug()
+        
+    elif transform_name == 'nlp_random_word_swap':
+        aug = naw.RandomWordAug(action = 'swap')
+        
+    elif transform_name == 'nlp_random_word_delete':
+        aug = naw.RandomWordAug()
+    
+    elif transform_name == 'nlp_random_crop':
+        aug = naw.RandomWordAug(action = 'crop')
+        
+    elif transform_name == 'nlp_random_token_split':
+        aug = naw.SplitAug()
+        
+        
+    # HOW TO ADD USER INPUT HERE?
+    # All possible models: https://huggingface.co/models?filter=translation&search=Helsinki-NLP
+    elif transform_name == 'nlp_back_translation_aug':
+        aug = naw.BackTranslationAug(from_model_name='facebook/wmt19-en-de', 
+                                     to_model_name='facebook/wmt19-de-en')
+    
+    # Reserved Word Augmenter??
+    
+    elif transform_name == 'nlp_contextual_sentence_insertion_gpt2_embedding':
+        aug = nas.ContextualWordEmbsForSentenceAug(model_path='gpt2')
+   
+    elif transform_name == 'nlp_contextual_sentence_insertion_xlnet_cased_embedding':
+        aug = nas.ContextualWordEmbsForSentenceAug(model_path='xlnet-base-cased')
+    
+    elif transform_name == 'nlp_contextual_sentence_insertion_distilgpt2_embedding':
+        aug = nas.ContextualWordEmbsForSentenceAug(model_path='distilgpt2')
+ 
+    elif transform_name == 'nlp_abstractive_summarization_bart_large_cnn':
+        aug = nas.AbstSummAug(model_path='facebook/bart-large-cnn')
+        
+    elif transform_name == 'nlp_abstractive_summarization_t5_small':
+        aug = nas.AbstSummAug(model_path='t5-small')
+ 
+    elif transform_name == 'nlp_abstractive_summarization_t5_base':
+        aug = nas.AbstSummAug(model_path='t5-base')
+
+    elif transform_name == 'nlp_abstractive_summarization_t5_large':
+        aug = nas.AbstSummAug(model_path='t5-large')
         
     return aug.augment
 
@@ -64,13 +237,13 @@ def initialize_bert_transform(config):
         
         if 'nlp' in config.transform:
             transform_name = config.transform
-            print(text)
+            #print(text)
             
             aug = initialize_nlpaug_transform(transform_name)
             
             
             text = aug(text)
-            print(text)
+            #print(text)
             
         tokens = tokenizer(
             text,
