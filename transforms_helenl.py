@@ -9,9 +9,12 @@ import nlpaug.augmenter.char as nac
 import nlpaug.augmenter.word as naw
 import nlpaug.augmenter.sentence as nas
 import nlpaug.flow as nafc
+import os
+
+model_dir = '../models/'
 
 
-def initialize_transform(transform_name, config, dataset, is_training):
+def initialize_transform(transform_name, config, dataset, is_training = True, num_aug_samples = 1, aug_size = 5):
     """
     By default, transforms should take in `x` and return `transformed_x`.
     For transforms that take in `(x, y)` and return `(transformed_x, transformed_y)`,
@@ -21,7 +24,7 @@ def initialize_transform(transform_name, config, dataset, is_training):
     if transform_name is None:
         return None
     elif transform_name=='bert':
-        return initialize_bert_transform(config)
+        return initialize_bert_transform(config, num_aug_samples, aug_size)
     elif transform_name=='image_base':
         return initialize_image_base_transform(config, dataset)
     elif transform_name=='image_resize_and_center_crop':
@@ -31,13 +34,14 @@ def initialize_transform(transform_name, config, dataset, is_training):
     elif transform_name=='rxrx1':
         return initialize_rxrx1_transform(is_training)
     elif 'nlp' in transform_name:
-        return initialize_bert_transform(config)
+        print(aug_size)
+        return initialize_bert_transform(config, aug_size)
     else:
         raise ValueError(f"{transform_name} not recognized")
 
         
         
-def initialize_nlpaug_transform(transform_name):
+def initialize_nlpaug_transform(transform_name, aug_size):
     
     if transform_name == 'nlp_ocr':
         aug = nac.OcrAug()
@@ -55,10 +59,15 @@ def initialize_nlpaug_transform(transform_name):
         aug = nac.RandomCharAug(action = 'swap')
         
     elif transform_name == 'nlp_random_char_deletion':
-        aug = nac.RandomCharAug(action = 'delete')
+        aug = nac.RandomCharAug(action = 'delete'
+                               , aug_word_p = 0.20
+                               , aug_char_min = aug_size
+                               , aug_char_max = aug_size
+                               , aug_char_p = 1)
+        
     
     elif transform_name == 'nlp_spelling_substitution':
-        aug = naw.SpellingAug()
+        aug = naw.SpellingAug(aug_min = aug_size, aug_max = aug_size, aug_p = 1)
         
     elif transform_name == 'nlp_random_similar_word_insertion_word2vec_embedding':
         aug = naw.WordEmbsAug(model_type='word2vec', 
@@ -173,26 +182,41 @@ def initialize_nlpaug_transform(transform_name):
         
         
     elif transform_name == 'nlp_wordnet_synonym':
-        aug = naw.SynonymAug()
+        aug = naw.SynonymAug(aug_min = aug_size
+                             , aug_max = aug_size 
+                             , aug_p = 1)
     
     elif transform_name == 'nlp_ppdb_synonym':
-        aug = naw.SynonymAug(aug_src='ppdb', 
-                             model_path=os.environ.get("MODEL_DIR") + 'ppdb-2.0-s-all')
+        aug = naw.SynonymAug(aug_src='ppdb'
+                             , model_path=os.environ.get("MODEL_DIR") + 'ppdb-2.0-s-all'
+                             , aug_min = aug_size, aug_max = aug_size, aug_p = 1)
         
     elif transform_name == 'nlp_antonym':
-        aug = naw.AntonymAug()
+        aug = naw.AntonymAug(aug_min = aug_size
+                             , aug_max = aug_size 
+                             , aug_p = 1)
         
     elif transform_name == 'nlp_random_word_swap':
-        aug = naw.RandomWordAug(action = 'swap')
+        aug = naw.RandomWordAug(action = 'swap'
+                               , aug_min = aug_size
+                               , aug_max = aug_size 
+                               , aug_p = 1)
         
     elif transform_name == 'nlp_random_word_delete':
-        aug = naw.RandomWordAug()
+        aug = naw.RandomWordAug(aug_min = aug_size
+                                , aug_max = aug_size 
+                                , aug_p = 1)
     
     elif transform_name == 'nlp_random_crop':
-        aug = naw.RandomWordAug(action = 'crop')
+        aug = naw.RandomWordAug(action = 'crop'
+                               , aug_min = aug_size
+                               , aug_max = aug_size 
+                               , aug_p = 1)
         
     elif transform_name == 'nlp_random_token_split':
-        aug = naw.SplitAug()
+        aug = naw.SplitAug(aug_min = aug_size
+                           , aug_max = aug_size 
+                           , aug_p = 1)
         
         
     # HOW TO ADD USER INPUT HERE?
@@ -228,22 +252,24 @@ def initialize_nlpaug_transform(transform_name):
 
     
     
-def initialize_bert_transform(config):
+def initialize_bert_transform(config, aug_size, num_aug_samples = 1):
     assert 'bert' in config.model
     assert config.max_token_length is not None
 
     tokenizer = getBertTokenizer(config.model)
+    print("bert:", aug_size)
     def transform(text):
         
         if 'nlp' in config.transform:
             transform_name = config.transform
             #print(text)
             
-            aug = initialize_nlpaug_transform(transform_name)
+            aug = initialize_nlpaug_transform(transform_name, aug_size)
             
             
-            text = aug(text)
+            text = aug(text, n = num_aug_samples)
             #print(text)
+            #print(aug_size)
             
         tokens = tokenizer(
             text,
