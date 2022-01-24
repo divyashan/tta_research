@@ -1,3 +1,7 @@
+import os
+os.environ['TRANSFORMERS_CACHE'] = '/local/helenl/.cache/'
+os.environ['PYTORCH_TRANSFORMERS_CACHE'] = '/local/helenl/.cache/'
+
 import random
 
 import torchvision.transforms as transforms
@@ -5,16 +9,27 @@ import torchvision.transforms.functional as TF
 from transformers import BertTokenizerFast, DistilBertTokenizerFast
 import torch
 
+
+
 import nlpaug.augmenter.char as nac
 import nlpaug.augmenter.word as naw
 import nlpaug.augmenter.sentence as nas
 import nlpaug.flow as nafc
-import os
 
-model_dir = '../models/'
+model_dir = '/local/helenl/helenl/models/'
 
 
-def initialize_transform(transform_name, config, dataset, is_training = True, num_aug_samples = 1, aug_size = 5):
+def initialize_transform(transform_name
+                         , config, dataset
+                         , is_training = True
+                          , num_samples = 1
+                          , aug_char_min = 1
+                          , aug_char_max = 1
+                          , aug_char_p = 1
+                          , aug_word_min = 1
+                          , aug_word_max = None
+                          , aug_word_p = 0.1
+                          , min_char = 4):
     """
     By default, transforms should take in `x` and return `transformed_x`.
     For transforms that take in `(x, y)` and return `(transformed_x, transformed_y)`,
@@ -24,7 +39,15 @@ def initialize_transform(transform_name, config, dataset, is_training = True, nu
     if transform_name is None:
         return None
     elif transform_name=='bert':
-        return initialize_bert_transform(config, num_aug_samples, aug_size)
+        return initialize_bert_transform(config
+                                          , num_samples = num_samples
+                                          , aug_char_min = aug_char_min
+                                          , aug_char_max = aug_char_max
+                                          , aug_char_p = aug_char_p
+                                          , aug_word_min = aug_word_min
+                                          , aug_word_max = aug_word_max
+                                          , aug_word_p = aug_word_p
+                                          , min_char = min_char)
     elif transform_name=='image_base':
         return initialize_image_base_transform(config, dataset)
     elif transform_name=='image_resize_and_center_crop':
@@ -34,189 +57,343 @@ def initialize_transform(transform_name, config, dataset, is_training = True, nu
     elif transform_name=='rxrx1':
         return initialize_rxrx1_transform(is_training)
     elif 'nlp' in transform_name:
-        print(aug_size)
-        return initialize_bert_transform(config, aug_size)
+
+        return initialize_bert_transform(config
+                                          , num_samples = num_samples
+                                          , aug_char_min = aug_char_min
+                                          , aug_char_max = aug_char_max
+                                          , aug_char_p = aug_char_p
+                                          , aug_word_min = aug_word_min
+                                          , aug_word_max = aug_word_max
+                                          , aug_word_p = aug_word_p
+                                          , min_char = min_char)
     else:
         raise ValueError(f"{transform_name} not recognized")
 
         
         
-def initialize_nlpaug_transform(transform_name, aug_size):
+def initialize_nlpaug_transform(transform_name
+                                  , aug_char_min = 1
+                                  , aug_char_max = 1
+                                  , aug_char_p = 1
+                                  , aug_word_min = 1
+                                  , aug_word_max = None
+                                  , aug_word_p = 0.1
+                                  , min_char = 4):
     
     if transform_name == 'nlp_ocr':
-        aug = nac.OcrAug()
+        aug = nac.OcrAug(aug_char_min = aug_char_min
+                        , aug_char_max = aug_char_max
+                        , aug_char_p = aug_char_p
+                        , aug_word_min = aug_word_min
+                        , aug_word_max = aug_word_max
+                        , aug_word_p = aug_word_p
+                        , min_char = min_char
+                        )
     
     elif transform_name == 'nlp_keyboard':
-        aug = nac.KeyboardAug()
+        aug = nac.KeyboardAug(aug_char_min = aug_char_min
+                            , aug_char_max = aug_char_max
+                            , aug_char_p = aug_char_p
+                            , aug_word_min = aug_word_min
+                            , aug_word_max = aug_word_max
+                            , aug_word_p = aug_word_p
+                            , min_char = min_char)
         
     elif transform_name == 'nlp_random_char_insert':
-        aug = nac.RandomCharAug(action = 'insert')
+        aug = nac.RandomCharAug(action = 'insert'
+                                , aug_char_min = aug_char_min
+                                , aug_char_max = aug_char_max
+                                , aug_char_p = aug_char_p
+                                , aug_word_min = aug_word_min
+                                , aug_word_max = aug_word_max
+                                , aug_word_p = aug_word_p
+                                , min_char = min_char)
     
     elif transform_name == 'nlp_random_char_substitution':
-        aug = nac.RandomCharAug(action = 'insert')
+        aug = nac.RandomCharAug(action = 'substitute'
+                                , aug_char_min = aug_char_min
+                                , aug_char_max = aug_char_max
+                                , aug_char_p = aug_char_p
+                                , aug_word_min = aug_word_min
+                                , aug_word_max = aug_word_max
+                                , aug_word_p = aug_word_p
+                                , min_char = min_char)
         
     elif transform_name == 'nlp_random_char_swap':
-        aug = nac.RandomCharAug(action = 'swap')
+        aug = nac.RandomCharAug(action = 'swap'
+                                , aug_char_min = aug_char_min
+                                , aug_char_max = aug_char_max
+                                , aug_char_p = aug_char_p
+                                , aug_word_min = aug_word_min
+                                , aug_word_max = aug_word_max
+                                , aug_word_p = aug_word_p
+                                , min_char = min_char)
         
     elif transform_name == 'nlp_random_char_deletion':
         aug = nac.RandomCharAug(action = 'delete'
-                               , aug_word_p = 0.20
-                               , aug_char_min = aug_size
-                               , aug_char_max = aug_size
-                               , aug_char_p = 1)
+                                , aug_char_min = aug_char_min
+                                , aug_char_max = aug_char_max
+                                , aug_char_p = aug_char_p
+                                , aug_word_min = aug_word_min
+                                , aug_word_max = aug_word_max
+                                , aug_word_p = aug_word_p
+                                , min_char = min_char)
         
     
     elif transform_name == 'nlp_spelling_substitution':
         aug = naw.SpellingAug(aug_min = aug_size, aug_max = aug_size, aug_p = 1)
         
     elif transform_name == 'nlp_random_similar_word_insertion_word2vec_embedding':
-        aug = naw.WordEmbsAug(model_type='word2vec', 
-                              model_path=model_dir+'GoogleNews-vectors-negative300.bin',
-                              action="insert")
+        aug = naw.WordEmbsAug(model_type='word2vec'
+                             , model_path=model_dir+'GoogleNews-vectors-negative300.bin'
+                             , action="insert"
+                             , aug_min = aug_word_min
+                             , aug_max = aug_word_max
+                             , aug_p = aug_word_p
+                             , device = 'CUDA')
         
         
     elif transform_name == 'nlp_random_similar_word_insertion_glove_embedding':
-        aug = naw.WordEmbsAug(model_type='glove', 
-                              model_path=model_dir+'GoogleNews-vectors-negative300.bin',
-                              action="insert")
+        aug = naw.WordEmbsAug(model_type='glove'
+                              , model_path=model_dir+'GoogleNews-vectors-negative300.bin'
+                              , action="insert"
+                              , aug_min = aug_word_min
+                              , aug_max = aug_word_max
+                              , aug_p = aug_word_p
+                              , device = 'CUDA')
         
     elif transform_name == 'nlp_random_similar_word_insertion_fasttext_embedding':
-        aug = naw.WordEmbsAug(model_type='fasttext', 
-                              model_path=model_dir+'GoogleNews-vectors-negative300.bin',
-                              action="insert")
+        aug = naw.WordEmbsAug(model_type='fasttext'
+                              , model_path=model_dir+'GoogleNews-vectors-negative300.bin'
+                              , action="insert"
+                              , aug_min = aug_word_min
+                              , aug_max = aug_word_max
+                              , aug_p = aug_word_p
+                              , device = 'CUDA')
     
     elif transform_name == 'nlp_random_similar_word_substitution_word2vec_embedding':
-        aug = naw.WordEmbsAug(model_type='word2vec', 
-                              model_path=model_dir+'GoogleNews-vectors-negative300.bin',
-                              action="substitute")
+        aug = naw.WordEmbsAug(model_type='word2vec'
+                              , model_path=model_dir+'GoogleNews-vectors-negative300.bin'
+                              , action="substitute"
+                              , aug_min = aug_word_min
+                              , aug_max = aug_word_max
+                              , aug_p = aug_word_p
+                              , device = 'CUDA')
         
         
     elif transform_name == 'nlp_random_similar_word_substitution_glove_embedding':
-        aug = naw.WordEmbsAug(model_type='glove', 
-                              model_path=model_dir+'GoogleNews-vectors-negative300.bin',
-                              action="substitute")
+        aug = naw.WordEmbsAug(model_type='glove' 
+                              , model_path=model_dir+'GoogleNews-vectors-negative300.bin'
+                              , action="substitute"
+                              , aug_min = aug_word_min
+                              , aug_max = aug_word_max
+                              , aug_p = aug_word_p
+                              , device = 'CUDA')
         
     elif transform_name == 'nlp_random_similar_word_substitution_fasttext_embedding':
-        aug = naw.WordEmbsAug(model_type='fasttext', 
-                              model_path=model_dir+'GoogleNews-vectors-negative300.bin',
-                              action="substitute")
+        aug = naw.WordEmbsAug(model_type='fasttext'
+                              , model_path=model_dir+'GoogleNews-vectors-negative300.bin'
+                              , action="substitute"
+                              , aug_min = aug_word_min
+                              , aug_max = aug_word_max
+                              , aug_p = aug_word_p
+                              , device = 'CUDA')
         
         
     elif transform_name == 'nlp_random_similar_word_substitution_tfidf_embedding':
-        aug = naw.TfIdfAug(model_path=os.environ.get("MODEL_DIR"),
-                           action="substitute")
-        
+        aug = naw.TfIdfAug(model_path=os.environ.get("MODEL_DIR")
+                           , action="substitute"
+                           , aug_p = aug_word_p
+                           , aug_min = aug_word_min
+                           , aug_max = aug_word_max
+                           , device = 'CUDA')
+       
+    elif transform_name == 'nlp_random_similar_word_insertion_tfidf_embedding':
+        aug = naw.TfIdfAug(model_path=os.environ.get("MODEL_DIR")
+                           , action="insert"
+                           , aug_p = aug_word_p
+                           , aug_min = aug_word_min
+                           , aug_max = aug_word_max
+                           , device = 'CUDA'
+                           )
         
     elif transform_name == 'nlp_random_contextual_word_insertion_bert_uncased_embedding':
-        aug = naw.ContextualWordEmbsAug(model_path='bert-base-uncased', 
-                                        action="insert")
+        aug = naw.ContextualWordEmbsAug(model_path='bert-base-uncased'
+                                       , action="insert"
+                                       , aug_min = aug_word_min
+                                       , aug_max = aug_word_max
+                                       , aug_p = aug_word_p
+                                       , device = 'CUDA')
         
     elif transform_name == 'nlp_random_contextual_word_insertion_bert_cased_embedding':
         aug = naw.ContextualWordEmbsAug(model_path='bert-base-uncased', 
-                                        action="insert")
+                                        action="insert"
+                                       , aug_min = aug_word_min
+                                       , aug_max = aug_word_max
+                                       , aug_p = aug_word_p
+                                       , device = 'CUDA')
     
     elif transform_name == 'nlp_random_contextual_word_insertion_distilbert_uncased_embedding':
         aug = naw.ContextualWordEmbsAug(model_path='distilbert-base-uncased', 
-                                        action="insert")
+                                        action="insert"
+                                       , aug_min = aug_word_min
+                                       , aug_max = aug_word_max
+                                       , aug_p = aug_word_p
+                                       , device = 'CUDA')
         
     elif transform_name == 'nlp_random_contextual_word_insertion_distilbert_cased_embedding':
         aug = naw.ContextualWordEmbsAug(model_path='distilbert-base-uncased', 
-                                        action="insert")
+                                        action="insert"
+                                       , aug_min = aug_word_min
+                                       , aug_max = aug_word_max
+                                       , aug_p = aug_word_p
+                                       , device = 'CUDA')
         
     elif transform_name == 'nlp_random_contextual_word_insertion_roberta_base_embedding':
         aug = naw.ContextualWordEmbsAug(model_path='roberta-base', 
-                                        action="insert")
+                                        action="insert"
+                                       , aug_min = aug_word_min
+                                       , aug_max = aug_word_max
+                                       , aug_p = aug_word_p
+                                       , device = 'CUDA')
         
     elif transform_name == 'nlp_random_contextual_word_insertion_distilroberta_base_embedding':
         aug = naw.ContextualWordEmbsAug(model_path='distilroberta-base', 
-                                        action="insert")
-    
-    elif transform_name == 'nlp_random_contextual_word_insertion_xlnet_embedding':
-        aug = naw.ContextualWordEmbsAug(model_path='xlnet', 
-                                        action="insert")
+                                        action="insert" 
+                                       , aug_min = aug_word_min
+                                       , aug_max = aug_word_max
+                                       , aug_p = aug_word_p
+                                       , device = 'CUDA')
     
     elif transform_name == 'nlp_random_contextual_word_insertion_bart_base_embedding':
         aug = naw.ContextualWordEmbsAug(model_path='facebook/bart-base', 
-                                        action="insert")
+                                        action="insert"
+                                       , aug_min = aug_word_min
+                                       , aug_max = aug_word_max
+                                       , aug_p = aug_word_p
+                                       , device = 'CUDA')
         
     elif transform_name == 'nlp_random_contextual_word_insertion_squeezebert_uncased_embedding':
         aug = naw.ContextualWordEmbsAug(model_path='squeezebert/squeezebert-uncased', 
-                                        action="insert")
+                                        action="insert"
+                                       , aug_min = aug_word_min
+                                       , aug_max = aug_word_max
+                                       , aug_p = aug_word_p
+                                       , device = 'CUDA')
     
     
     elif transform_name == 'nlp_random_contextual_word_substitution_bert_uncased_embedding':
         aug = naw.ContextualWordEmbsAug(model_path='bert-base-uncased', 
-                                        action="substitute")
+                                        action="substitute"
+                                       , aug_min = aug_word_min
+                                       , aug_max = aug_word_max
+                                       , aug_p = aug_word_p
+                                       , device = 'CUDA')
    
     elif transform_name == 'nlp_random_contextual_word_substitution_bert_cased_embedding':
         aug = naw.ContextualWordEmbsAug(model_path='bert-base-cased', 
-                                        action="substitute")
+                                        action="substitute"
+                                       , aug_min = aug_word_min
+                                       , aug_max = aug_word_max
+                                       , aug_p = aug_word_p
+                                       , device = 'CUDA')
         
     elif transform_name == 'nlp_random_contextual_word_substitution_distilbert_uncased_embedding':
         aug = naw.ContextualWordEmbsAug(model_path='distilbert-base-uncased', 
-                                        action="substitute")
+                                        action="substitute"
+                                       , aug_min = aug_word_min
+                                       , aug_max = aug_word_max
+                                       , aug_p = aug_word_p
+                                       , device = 'CUDA')
    
     elif transform_name == 'nlp_random_contextual_word_substitution_distilbert_cased_embedding':
         aug = naw.ContextualWordEmbsAug(model_path='distilbert-base-cased', 
-                                        action="substitute")
+                                        action="substitute"
+                                       , aug_min = aug_word_min
+                                       , aug_max = aug_word_max
+                                       , aug_p = aug_word_p
+                                       , device = 'CUDA')
         
     elif transform_name == 'nlp_random_contextual_word_substitution_roberta_embedding':
         aug = naw.ContextualWordEmbsAug(model_path='roberta-base', 
-                                        action="substitute")
+                                        action="substitute"
+                                       , aug_min = aug_word_min
+                                       , aug_max = aug_word_max
+                                       , aug_p = aug_word_p
+                                       , device = 'CUDA')
   
     elif transform_name == 'nlp_random_contextual_word_substitution_distilroberta_base_embedding':
         aug = naw.ContextualWordEmbsAug(model_path='distilroberta-base', 
-                                        action="substitute")
+                                        action="substitute"
+                                       , aug_min = aug_word_min
+                                       , aug_max = aug_word_max
+                                       , aug_p = aug_word_p
+                                       , device = 'CUDA')
         
-    elif transform_name == 'nlp_random_contextual_word_substitution_xlnet_embedding':
-        aug = naw.ContextualWordEmbsAug(model_path='xlnet', 
-                                        action="substitute")
 
     elif transform_name == 'nlp_random_contextual_word_substitution_bart_base_embedding':
         aug = naw.ContextualWordEmbsAug(model_path='facebook/bart-base', 
-                                        action="substitute")
+                                        action="substitute"
+                                       , aug_min = aug_word_min
+                                       , aug_max = aug_word_max
+                                       , aug_p = aug_word_p
+                                       , device = 'CUDA')
         
     elif transform_name == 'nlp_random_contextual_word_substitution_squeezebert_uncased_embedding':
         aug = naw.ContextualWordEmbsAug(model_path='squeezebert/squeezebert-uncased', 
-                                        action="substitute")
+                                        action="substitute"
+                                       , aug_min = aug_word_min
+                                       , aug_max = aug_word_max
+                                       , aug_p = aug_word_p
+                                       , device = 'CUDA')
         
         
     elif transform_name == 'nlp_wordnet_synonym':
-        aug = naw.SynonymAug(aug_min = aug_size
-                             , aug_max = aug_size 
-                             , aug_p = 1)
+        aug = naw.SynonymAug(aug_min = aug_word_min
+                             , aug_max = aug_word_max 
+                             , aug_p = aug_word_p)
     
     elif transform_name == 'nlp_ppdb_synonym':
         aug = naw.SynonymAug(aug_src='ppdb'
                              , model_path=os.environ.get("MODEL_DIR") + 'ppdb-2.0-s-all'
-                             , aug_min = aug_size, aug_max = aug_size, aug_p = 1)
+                             , aug_min = aug_word_min
+                             , aug_max = aug_word_max
+                             , aug_p = aug_word_p)
         
     elif transform_name == 'nlp_antonym':
-        aug = naw.AntonymAug(aug_min = aug_size
-                             , aug_max = aug_size 
-                             , aug_p = 1)
+        aug = naw.AntonymAug(aug_min = aug_word_min
+                             , aug_max = aug_word_max 
+                             , aug_p = aug_word_p)
         
     elif transform_name == 'nlp_random_word_swap':
         aug = naw.RandomWordAug(action = 'swap'
-                               , aug_min = aug_size
-                               , aug_max = aug_size 
-                               , aug_p = 1)
+                               , aug_min = aug_word_min
+                               , aug_max = aug_word_max 
+                               , aug_p = aug_word_p)
         
     elif transform_name == 'nlp_random_word_delete':
-        aug = naw.RandomWordAug(aug_min = aug_size
-                                , aug_max = aug_size 
-                                , aug_p = 1)
+        aug = naw.RandomWordAug(action = 'delete'
+                               , aug_min = aug_word_min
+                               , aug_max = aug_word_max 
+                               , aug_p = aug_word_p)
     
-    elif transform_name == 'nlp_random_crop':
+    elif transform_name == 'nlp_random_word_crop':
         aug = naw.RandomWordAug(action = 'crop'
-                               , aug_min = aug_size
-                               , aug_max = aug_size 
-                               , aug_p = 1)
+                               , aug_min = aug_word_min
+                               , aug_max = aug_word_max 
+                               , aug_p = aug_word_p)
+        
+    elif transform_name == 'nlp_random_word_substitute':
+        aug = naw.RandomWordAug(action = 'substitute'
+                               , aug_min = aug_word_min
+                               , aug_max = aug_word_max 
+                               , aug_p = aug_word_p)
         
     elif transform_name == 'nlp_random_token_split':
-        aug = naw.SplitAug(aug_min = aug_size
-                           , aug_max = aug_size 
-                           , aug_p = 1)
+        aug = naw.SplitAug(aug_min = aug_word_min
+                           , aug_max = aug_word_max 
+                           , aug_p = aug_word_p)
         
         
     # HOW TO ADD USER INPUT HERE?
@@ -252,45 +429,72 @@ def initialize_nlpaug_transform(transform_name, aug_size):
 
     
     
-def initialize_bert_transform(config, aug_size, num_aug_samples = 1):
+def initialize_bert_transform(config
+                              , num_samples = 1
+                              , aug_char_min = 1
+                              , aug_char_max = 1
+                              , aug_char_p = 1
+                              , aug_word_min = 1
+                              , aug_word_max = None
+                              , aug_word_p = 0.1
+                              , min_char = 4):
     assert 'bert' in config.model
     assert config.max_token_length is not None
 
     tokenizer = getBertTokenizer(config.model)
-    print("bert:", aug_size)
+
+    print("char_min:", aug_char_min)
+    print("word_p:", aug_word_p)
+    
+    """
+    Modified to return a list of tensors, each one representing transformed, tokenized input text.
+    """
     def transform(text):
         
         if 'nlp' in config.transform:
             transform_name = config.transform
-            #print(text)
+
             
-            aug = initialize_nlpaug_transform(transform_name, aug_size)
+            aug = initialize_nlpaug_transform(transform_name
+                                              , aug_char_min = aug_char_min
+                                              , aug_char_max = aug_char_max
+                                              , aug_char_p = aug_char_p
+                                              , aug_word_min = aug_word_min
+                                              , aug_word_max = aug_word_max
+                                              , aug_word_p = aug_word_p
+                                              , min_char = min_char)
             
             
-            text = aug(text, n = num_aug_samples)
-            #print(text)
-            #print(aug_size)
-            
-        tokens = tokenizer(
-            text,
-            padding='max_length',
-            truncation=True,
-            max_length=config.max_token_length,
-            return_tensors='pt')
+            text = aug(text, n = num_samples)
         
-        if config.model == 'bert-base-uncased':
-            x = torch.stack(
-                (tokens['input_ids'],
-                 tokens['attention_mask'],
-                 tokens['token_type_ids']),
-                dim=2)
-        elif config.model == 'distilbert-base-uncased':
-            x = torch.stack(
-                (tokens['input_ids'],
-                 tokens['attention_mask']),
-                dim=2)
-        x = torch.squeeze(x, dim=0) # First shape dim is always 1
-        return x
+  
+        if isinstance(text, str):# num_samples  == 1
+            text = [text]
+            
+        samples = []
+        for sample in text:
+            tokens = tokenizer(
+                sample,
+                padding='max_length',
+                truncation=True,
+                max_length=config.max_token_length,
+                return_tensors='pt')
+
+            if config.model == 'bert-base-uncased':
+                x = torch.stack(
+                    (tokens['input_ids'],
+                     tokens['attention_mask'],
+                     tokens['token_type_ids']),
+                    dim=2)
+            elif config.model == 'distilbert-base-uncased':
+                x = torch.stack(
+                    (tokens['input_ids'],
+                     tokens['attention_mask']),
+                    dim=2)
+            x = torch.squeeze(x, dim=0) # First shape dim is always 1
+            samples.append(x)
+        
+        return samples
     return transform
 
 def getBertTokenizer(model):
