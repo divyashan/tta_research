@@ -29,6 +29,9 @@ def initialize_transform(transform_name
                           , aug_word_min = 1
                           , aug_word_max = None
                           , aug_word_p = 0.1
+                          , aug_sentence_min = 1
+                          , aug_sentence_max = None
+                          , aug_sentence_p = 0.1
                           , min_char = 4):
     """
     By default, transforms should take in `x` and return `transformed_x`.
@@ -79,6 +82,9 @@ def initialize_nlpaug_transform(transform_name
                                   , aug_word_min = 1
                                   , aug_word_max = None
                                   , aug_word_p = 0.1
+                                  , aug_sentence_min = 1
+                                  , aug_sentence_max = None
+                                  , aug_sentence_p = 0.1
                                   , min_char = 4):
     
     if transform_name == 'nlp_ocr':
@@ -142,7 +148,9 @@ def initialize_nlpaug_transform(transform_name
         
     
     elif transform_name == 'nlp_spelling_substitution':
-        aug = naw.SpellingAug(aug_min = aug_size, aug_max = aug_size, aug_p = 1)
+        aug = naw.SpellingAug(aug_min = aug_word_min
+                              , aug_max = aug_word_max
+                              , aug_p = aug_word_p)
         
     elif transform_name == 'nlp_random_similar_word_insertion_word2vec_embedding':
         aug = naw.WordEmbsAug(model_type='word2vec'
@@ -395,7 +403,33 @@ def initialize_nlpaug_transform(transform_name
                            , aug_max = aug_word_max 
                            , aug_p = aug_word_p)
         
+    elif transform_name == 'nlp_random_sentence_shuffle_left':
+        aug = nas.random.RandomSentAug(mode = 'left'
+                                , aug_min = aug_sentence_min
+                                , aug_max = aug_sentence_max 
+                                , aug_p = aug_sentence_p)
         
+        
+    elif transform_name == 'nlp_random_sentence_shuffle_right':
+        aug = nas.random.RandomSentAug(mode = 'right'
+                                , aug_min = aug_sentence_min
+                                , aug_max = aug_sentence_max 
+                                , aug_p = aug_sentence_p)
+        
+    
+    elif transform_name == 'nlp_random_sentence_shuffle_neighbor':
+        aug = nas.random.RandomSentAug(mode = 'neighbor'
+                                , aug_min = aug_sentence_min
+                                , aug_max = aug_sentence_max 
+                                , aug_p = aug_sentence_p)
+        
+    elif transform_name == 'nlp_random_sentence_shuffle_random':
+        aug = nas.random.RandomSentAug(mode = 'random'
+                                , aug_min = aug_sentence_min
+                                , aug_max = aug_sentence_max 
+                                , aug_p = aug_sentence_p)
+    
+    
     # HOW TO ADD USER INPUT HERE?
     # All possible models: https://huggingface.co/models?filter=translation&search=Helsinki-NLP
     elif transform_name == 'nlp_back_translation_aug':
@@ -408,22 +442,28 @@ def initialize_nlpaug_transform(transform_name
         aug = nas.ContextualWordEmbsForSentenceAug(model_path='gpt2')
    
     elif transform_name == 'nlp_contextual_sentence_insertion_xlnet_cased_embedding':
-        aug = nas.ContextualWordEmbsForSentenceAug(model_path='xlnet-base-cased')
+        aug = nas.ContextualWordEmbsForSentenceAug(model_path='xlnet-base-cased'
+                                                  , device = 'CUDA')
     
     elif transform_name == 'nlp_contextual_sentence_insertion_distilgpt2_embedding':
-        aug = nas.ContextualWordEmbsForSentenceAug(model_path='distilgpt2')
+        aug = nas.ContextualWordEmbsForSentenceAug(model_path='distilgpt2'
+                                                  , device = 'CUDA')
  
     elif transform_name == 'nlp_abstractive_summarization_bart_large_cnn':
-        aug = nas.AbstSummAug(model_path='facebook/bart-large-cnn')
+        aug = nas.AbstSummAug(model_path='facebook/bart-large-cnn'
+                             , device = 'CUDA')
         
     elif transform_name == 'nlp_abstractive_summarization_t5_small':
-        aug = nas.AbstSummAug(model_path='t5-small')
+        aug = nas.AbstSummAug(model_path='t5-small'
+                             , device = 'CUDA')
  
     elif transform_name == 'nlp_abstractive_summarization_t5_base':
-        aug = nas.AbstSummAug(model_path='t5-base')
+        aug = nas.AbstSummAug(model_path='t5-base'
+                             , device = 'CUDA')
 
     elif transform_name == 'nlp_abstractive_summarization_t5_large':
-        aug = nas.AbstSummAug(model_path='t5-large')
+        aug = nas.AbstSummAug(model_path='t5-large'
+                             , device = 'CUDA')
         
     return aug.augment
 
@@ -467,9 +507,11 @@ def initialize_bert_transform(config
             
             text = aug(text, n = num_samples)
         
+        else: 
+            text = [text, text, text, text]
   
-        if isinstance(text, str):# num_samples  == 1
-            text = [text]
+        if isinstance(text, str): # num_samples  == 1
+            text = [text] * num_samples
             
         samples = []
         for sample in text:
