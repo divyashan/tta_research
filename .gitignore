@@ -1,0 +1,14 @@
+# ignore .pyc files
+*.pyc
+
+# ignore jupyter notebook checkpoint files
+*-checkpoint.ipynb
+
+# ignore all models downloaded in best_models/ directory
+best_models/*
+
+# ignore wilds directory
+wilds/*
+
+# ignore all data files
+data/*
