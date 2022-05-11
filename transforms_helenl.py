@@ -39,6 +39,8 @@ def initialize_transform(transform_name
     set `do_transform_y` to True when initializing the WILDSSubset.    
     """
 
+    print("initialize_transform() num_samples:", num_samples)
+    
     if transform_name is None:
         return None
     elif transform_name=='bert':
@@ -485,7 +487,7 @@ def initialize_bert_transform(config
 
     print("char_min:", aug_char_min)
     print("word_p:", aug_word_p)
-    
+    print("initialize_bert_transform() num_samples:", num_samples)
     """
     Modified to return a list of tensors, each one representing transformed, tokenized input text.
     """
@@ -508,9 +510,9 @@ def initialize_bert_transform(config
             text = aug(text, n = num_samples)
         
         else: 
-            text = [text, text, text, text]
+            text = [text]
   
-        if isinstance(text, str): # num_samples  == 1
+        if isinstance(text, str): 
             text = [text] * num_samples
             
         samples = []
