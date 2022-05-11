@@ -13,7 +13,7 @@ from tqdm.notebook import tqdm
 from gpu_utils import restrict_GPU_pytorch
 from helenl_utils import *
 
-restrict_GPU_pytorch('1')
+restrict_GPU_pytorch('3')
 
 
 # Load Amazon WILDS pre-trained model
@@ -44,8 +44,8 @@ word_augmentations = [
 ]
 
 
-word_augmentations = [ #'nlp_random_word_swap'
-                      # , 'nlp_random_word_delete'
+word_augmentations = [ # 'nlp_random_word_swap'
+                      #, 'nlp_random_word_delete'
                       # , 'nlp_random_word_substitute'
                       'nlp_random_token_split'
                       , 'nlp_wordnet_synonym'
@@ -82,13 +82,14 @@ char_augmentations = ['bert'
 
 full_dataset = get_dataset(dataset="amazon", download=False, root_dir = './wilds/data')
 
+"""
 for char_aug in char_augmentations:
 	predict_augmented_labels(char_aug
 				, "amazon"
 				, "ERM"
-				, "/data/ddmg/prism/tta/outputs/amazon_ERM_predictions_optimized_params/raw/"
+				, "/data/ddmg/prism/tta/outputs/amazon_ERM_predictions_optimized_params_four_samples/raw/"
 				, full_dataset = full_dataset
-				, num_samples = 1
+				, num_samples = 4
 				, aug_char_min = 1
 				, aug_char_max = 1
 				, aug_char_p = 1
@@ -96,14 +97,14 @@ for char_aug in char_augmentations:
 				, aug_word_max = None
 				, aug_word_p = 0.1
 				)
-
+"""
 for word_aug in word_augmentations:
 	predict_augmented_labels(word_aug
                          , "amazon"
                          , "ERM"
-                         , "/data/ddmg/prism/tta/outputs/amazon_ERM_predictions_optimized_params/raw/"
+                         , "/data/ddmg/prism/tta/outputs/amazon_ERM_predictions_optimized_params_four_samples/raw/"
                          , full_dataset = full_dataset
-                        , num_samples = 1
+                        , num_samples = 4
                         , aug_char_min = 1
                         , aug_char_max = 1
                         , aug_char_p = 1

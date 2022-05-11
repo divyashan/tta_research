@@ -104,7 +104,7 @@ def predict_augmented_labels(transform_name
                             , algorithm_name
                             , saved_file_dir
                             , full_dataset
-                            , num_samples = 4
+                            , num_samples = 1
                             , aug_char_min = 1
                             , aug_char_max = 1
                             , aug_char_p = 1
@@ -135,8 +135,9 @@ def predict_augmented_labels(transform_name
 
     # Modify config with intended transformation
     new_dict['transform'] = transform_name
-    new_dict['batch_size'] = 1
-    new_dict['unlabeled_batch_size'] = 1
+    new_dict['batch_size'] = 8
+    new_dict['unlabeled_batch_size'] = 8
+    new_dict['loader_kwargs']['num_workers'] = 4
 
 
     # Create config with ERM algorithm
@@ -144,7 +145,7 @@ def predict_augmented_labels(transform_name
     
 
     # Generate training and evaluation transforms
-    print("num_samples:", num_samples)
+    print("predict_augmented_labels() num_samples:", num_samples)
     train_transform = initialize_transform(transform_name=config.transform
                                           , config=config
                                           , dataset=full_dataset
@@ -185,7 +186,7 @@ def predict_augmented_labels(transform_name
     eval_data = full_dataset.get_subset('test', transform=eval_transform)
 
 
-    eval_loader = get_eval_loader('standard', eval_data, batch_size = 64)
+    eval_loader = get_eval_loader('standard', eval_data, batch_size = 8)
     
     # CODE TAKEN FROM WILDS TRAINING SCRIPTS:
     datasets = defaultdict(dict)
@@ -254,23 +255,43 @@ def predict_augmented_labels(transform_name
     metadata = []
     
     for batch in tqdm(it):
+        
+        print("batch:", batch)
+        print("batch length:", len(batch))
 
-        for sample in batch[0]:          
+        for sample in batch[0]: 
+            print("batch[0] length:", len(batch[0]))
+            print("sample_size:", np.shape(sample))
             
             sample = sample.cuda()
             raw_pred = alg.model(sample)
             raw_pred = raw_pred.cpu().detach().numpy()
             
+            print("raw pred length:", len(raw_pred))
+            print("pre-predictions:", predictions)
             predictions.extend(raw_pred.tolist())
+            print("post-predictions:", predictions)
         
         for i in range(num_samples):
+            print("pre-labels:", labels)
             labels.extend(batch[1].tolist())
+            print("label:", batch[1])
+            print("post-labels:", labels)
             metadata.extend(batch[2].tolist()) # tensor of (64,16) for each batch
 
+        return
+    print(len(predictions))
+    print(len(labels))
+    print(len(metadata))
 
     
-    file_name = saved_file_dir + "/" + transform_name + ".npy"
+    if num_samples == 1:
+        file_name = saved_file_dir + "/" + transform_name + ".npy"
+        
+    else:
+        file_name = saved_file_dir + "/" + transform_name + "_" + str(num_samples) + ".npy"
     
+    print(file_name)
     #parameters = locals()                      
     with open(file_name, 'wb+') as file:
         np.save(file, predictions)
@@ -278,7 +299,7 @@ def predict_augmented_labels(transform_name
         np.save(file, metadata)
         #np.save(file, parameters)
 
-
+    print(file_name)
     eval_data_info = (eval_data.indices, eval_data.dataset)  
     return eval_data_info
 
@@ -356,7 +377,7 @@ Returns:
     accuracy_scores (list)  : List of length num_runs containing accuracy scores (as floats between 0 and 1, inclusive).
 
 """
-def calculate_accuracy(prediction_file, sampling_percent = 0.8, num_runs = 10):
+def calculate_accuracy(prediction_file, sampling_percent = 0.8, num_runs = 10, accuracy_metric = "exact"):
     set_seed(0)
 
 
@@ -389,7 +410,13 @@ def calculate_accuracy(prediction_file, sampling_percent = 0.8, num_runs = 10):
             index_prediction = np.argmax(prediction, axis = 0).tolist()
             classified_predictions.append(index_prediction)
     
-        score = sklearn.metrics.accuracy_score(matching_labels, classified_predictions)
+        if accuracy_metric == "exact":
+            score = sklearn.metrics.accuracy_score(matching_labels, classified_predictions)
+            
+        elif accuracy_metric == "MSE":
+            score = sklearn.metrics.mean_absolute_error(matching_labels, classified_predictions)
+            
+            
         #print(score)
         accuracy_scores.append(score)
     
@@ -511,8 +538,7 @@ def calculate_corrections_corruptions(aug_pred_file, original_pred_file):
         original_labels = np.load(original_file, allow_pickle = True)
         
     assert aug_labels.all() == original_labels.all(), "Test set labels do not match between aug. and original."
-    assert aug_labels.size == 133782
-    assert original_labels.size == 133782
+    assert aug_labels.size == original_labels.size
     
     for prediction in aug_logit_predictions:
         index_prediction = np.argmax(prediction).tolist()
@@ -593,9 +619,6 @@ def extract_corrections_corruptions_inputs(augmentation_file_path, standard_file
         
     data = (inputs, labels, metadata)
     return data
-
-
-
 
 
 
