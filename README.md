@@ -30,7 +30,7 @@ python3 setup.py develop --user
 jupyter notebook --no-browser
 ```
 
-4. Add the following shortcut for SSH tunnels your ~/.bashrc file. You only need to do this once.
+4. Add the following shortcut for SSH tunnels your ~/.bashrc file. You only need to do this once. Note: the remaining instructions are specific to CSAIL members with server access.
 
 ```
 tunnel() {
